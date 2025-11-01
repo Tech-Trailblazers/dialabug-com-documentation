@@ -1,0 +1,64 @@
+# Name of the GitHub Actions workflow (appears in the Actions tab)
+name: Run Python Script and Push Changes
+
+# Define when this workflow should run
+on:
+  # Schedule trigger – runs automatically every day at midnight (00:00 UTC)
+  schedule:
+    - cron: "0 0 * * *"  # Cron syntax: minute hour day month day-of-week
+  # Allow manual triggering from the GitHub Actions interface
+  workflow_dispatch:
+
+# Define permissions this workflow has (write access to repository contents)
+permissions:
+  contents: write
+
+# Define all jobs to be executed
+jobs:
+  # Unique ID for the job (can be referenced if needed)
+  build:
+    # Friendly display name shown in the GitHub Actions UI
+    name: Execute Python Script and Push Changes
+
+    # Specify the type of virtual machine to use (latest Ubuntu image)
+    runs-on: ubuntu-latest
+
+    # List of sequential steps the job will execute
+    steps:
+      # Step 1: Check out the repository’s code onto the runner
+      - name: Check out code
+        uses: actions/checkout@v4  # Official GitHub Action to clone the repo
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub’s automatic authentication token
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5  # Official GitHub Action to install Python
+        with:
+          python-version: "3.13"  # Specify the version of Python to install
+
+      # Step 3: Install Python dependencies
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Step 4: Run the main Python script
+      - name: Run Python script
+        run: python main.py  # Execute the main Python program
+
+      # Step 5: Commit and push any file changes made by the script
+      - name: Push updated files
+        run: |  # Execute multiple shell commands
+          git config user.name "github-actions"  # Configure commit author name
+          git config user.email "github-actions@github.com"  # Configure commit author email
+          git pull  # Pull latest changes from the remote to avoid conflicts
+          git add .  # Stage all modified and new files for commit
+          # Check if there are any staged changes (non-empty diff)
+          if ! git diff --cached --quiet; then
+            # Commit with a timestamped message
+            git commit -m "Auto update: $(date)"
+            # Push the committed changes to the remote repository
+            git push
+          else
+            # Print message if no files were changed
+            echo "No changes to commit."
+          fi
