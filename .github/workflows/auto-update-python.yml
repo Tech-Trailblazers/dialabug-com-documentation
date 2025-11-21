@@ -27,7 +27,7 @@ jobs:
     steps:
       # Step 1: Check out the repository’s code onto the runner
       - name: Check out code
-        uses: actions/checkout@v5  # Official GitHub Action to clone the repo
+        uses: actions/checkout@v6  # Official GitHub Action to clone the repo
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # Use GitHub’s automatic authentication token
 
